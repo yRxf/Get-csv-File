@@ -1,0 +1,81 @@
+#include <fstream>   
+#include <string>  
+#include <iostream>  
+#include <streambuf>   
+#include <vector>
+#include <sstream>
+using namespace std;
+
+int main()
+{
+	vector<string> order;
+	ifstream iFile("ceui.csv", ios::in);
+	string token, m_countent;
+	int num1 = 0;
+	while (getline(iFile, m_countent))
+	{
+		num1 = 0;
+		stringstream sstr(m_countent);
+		while (getline(sstr, token, ','))
+		{
+			static bool is_huanhang = false;
+			static bool is_new = true;
+			token.erase(0, token.find_first_not_of(" \t\r\n"));
+			token.erase(token.find_last_not_of(" \t\r\n") + 1);
+			if (token == "" && !is_huanhang)
+			{
+				order.push_back(token);
+				++num1;
+				continue;
+			}
+				
+			if (token.find("\"") == 0 && token.find_last_of("\"") == 0)		//第一个是引号且找不到别的引号，判断为换行引号,也有可能为换行引号结束
+			{
+				token.erase(0, 1);
+				if (!is_huanhang)
+				{
+
+					is_huanhang = true;
+					is_new = false;
+				}
+				else
+				{
+					is_huanhang = false;
+				}
+			}
+			if (token == "")
+				continue;
+			if (is_huanhang)
+			{
+				if (token.back() == '"')
+				{
+					is_huanhang = false;
+					token.erase(token.length() - 1,1);
+				}
+				if (is_new)
+				{
+					if(order.size()==0)
+						order.push_back(token);
+					else 
+						order.back() += token;
+				}
+					
+				else
+				{
+					order.push_back(token);
+					is_new = true;
+				}
+			}
+			else
+			{
+				is_huanhang = false;
+				order.push_back(token);
+				++num1;
+			}
+		}
+	}
+	iFile.close();
+	for (auto& c : order)
+		cout << c << endl;
+	return 0;
+}
